@@ -1,8 +1,25 @@
 {
   "name": "obsidian-zen",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "CLI to roll out the Zen Mode Obsidian plugin and settings into any vault.",
   "type": "module",
+  "author": "Igor Suvorov <hi@isuvorov.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isuvorov/obsidian-zen.git"
+  },
+  "homepage": "https://github.com/isuvorov/obsidian-zen#readme",
+  "bugs": {
+    "url": "https://github.com/isuvorov/obsidian-zen/issues"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "zen-mode",
+    "vault",
+    "cli"
+  ],
   "bin": {
     "obsidian-zen": "sync/cli.js"
   },
@@ -10,11 +27,66 @@
     "sync",
     "docs"
   ],
+  "scripts": {
+    "start": "node sync/cli.js",
+    "version:release": "semantic-release --no-ci --dry-run",
+    "release": "semantic-release"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "tagFormat": "${version}",
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/exec",
+        {
+          "prepareCmd": "node scripts/bump-manifest.mjs ${nextRelease.version}"
+        }
+      ],
+      "@semantic-release/npm",
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            { "path": "main.js" },
+            { "path": "manifest.json" },
+            { "path": "styles.css" }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "package.json",
+            "manifest.json",
+            "bun.lock",
+            "CHANGELOG.md"
+          ],
+          "message": "chore(release): 🎉 v${nextRelease.version}\n\n${nextRelease.notes}\n\n[skip ci]"
+        }
+      ]
+    ]
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "provenance": true
+  },
   "dependencies": {
     "yargs": "^17.7.2"
   },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^7.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^25.0.5"
+  },
   "engines": {
     "node": ">=18"
-  },
-  "license": "MIT"
+  }
 }

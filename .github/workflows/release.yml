@@ -1,24 +1,20 @@
-name: Release
+name: release
 
-# Push в main с изменением файлов плагина или CLI -> ЕДИНЫЙ релиз обоих артефактов
-# с одной и той же версией:
-#   - GitHub Release (его тянет BRAT)
-#   - npm publish (для `npx obsidian-zen`)
-# Единая версия = major.minor из manifest.json + patch = github.run_number
-# (ОДИН счётчик на оба артефакта). Штампуется и в manifest.json, и в package.json,
-# поэтому версия в GitHub Release, npm и обоих файлах всегда совпадает.
+# Push в main -> semantic-release анализирует conventional commits и, если есть
+# что релизить, штампует ОДНУ версию (из git-тегов вида 0.1.5, без префикса v) в
+# package.json и manifest.json, обновляет CHANGELOG.md, публикует пакет в npm
+# (`npx obsidian-zen`) и создаёт GitHub Release с main.js/manifest.json/styles.css
+# (его тянет BRAT). Версия в npm, GitHub Release, package.json и manifest.json
+# всегда совпадает.
 on:
   push:
     branches: [main]
-    paths:
-      - "styles.css"
-      - "main.js"
-      - "manifest.json"
-      - "sync/**"
-      - "package.json"
 
 permissions:
   contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
 
 concurrency:
   group: release
@@ -28,46 +24,29 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
         with:
-          node-version: 20
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
           registry-url: https://registry.npmjs.org
 
-      - name: Required files exist
-        run: |
-          for f in main.js manifest.json styles.css package.json; do
-            test -f "$f" || { echo "::error::Нет файла $f"; exit 1; }
-          done
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
-      - name: Compute version
-        id: ver
-        run: |
-          BASE="$(jq -r '.version' manifest.json | cut -d. -f1,2)"
-          VERSION="${BASE}.${{ github.run_number }}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Release version: $VERSION"
-
-      - name: Stamp version into manifest.json and package.json
-        run: |
-          VERSION="${{ steps.ver.outputs.version }}"
-          jq --arg v "$VERSION" '.version=$v' manifest.json > manifest.tmp
-          mv manifest.tmp manifest.json
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
-
-      - name: GitHub Release (BRAT pulls this)
+      - name: Release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.ver.outputs.version }}
-        run: |
-          gh release create "$VERSION" \
-            --target "${{ github.sha }}" \
-            --title "$VERSION" \
-            --generate-notes \
-            main.js manifest.json styles.css
-
-      - name: Publish to npm
-        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+          GIT_AUTHOR_NAME: Igor Suvorov
+          GIT_AUTHOR_EMAIL: hi@isuvorov.com
+          GIT_COMMITTER_NAME: Igor Suvorov
+          GIT_COMMITTER_EMAIL: hi@isuvorov.com
+        run: npx semantic-release
