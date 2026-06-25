@@ -22,6 +22,10 @@
 **⚡ Sync** — keeps any vault in sync with your own setting <br/>
 **📂 File** — open any file without adding a vault <br/>
 
+<div align="center">
+  <img src="./docs/screenshot.png" width="720" alt="Zen Mode for Obsidian — screenshot" />
+</div>
+
 ---
 
 ## Quick Start
