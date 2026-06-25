@@ -32,7 +32,7 @@ Have an Obsidian vault? Roll out the plugin and settings with one command:
 npx obsidian-zen sync ~/vaults/work
 ```
 
-Then press `Cmd+R` in the vault and enable the **Zen Mode** plugin. Cmd + § That's it.
+Reload the Obsidian app if needed, then press `Cmd + §` / `Cmd + ~`. Enjoy the silence.
 
 ---
 
@@ -96,7 +96,19 @@ npx obsidian-zen open paper.md --mirror ~/projects/app # mirror the tree under t
 | `--vault`   | `-V`  | active vault | destination vault for the symlinks                                      |
 | `--mirror`  | `-m`  | —            | directory whose inner structure is mirrored into the vault (repeatable) |
 
-> Tip: alias it for one-keystroke opening — `alias ob='obsidian-zen open'`, then `ob note.md`.
+#### `ob` — global shortcut
+
+Install once, alias it, and opening a note is two letters:
+
+```bash
+npm i -g obsidian-zen
+alias ob='obsidian-zen open'    # add to ~/.zshrc to keep it
+
+ob note.md                      # open a single file
+ob ~/projects/app/docs/*.md     # a whole folder at once (shell glob)
+```
+
+> Only `.md` files are opened — pass a glob like `docs/*.md`, not a bare directory.
 
 ---
 

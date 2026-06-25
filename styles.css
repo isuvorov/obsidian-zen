@@ -151,11 +151,11 @@ body {
    на body: переопределяем --titlebar-background* (CSS-переменные наследуются
    вниз и докрашивают titlebar) и на всякий случай красим .titlebar напрямую. */
 body:has(.workspace-split.mod-left-split.is-sidedock-collapsed):has(.workspace-split.mod-right-split.is-sidedock-collapsed) {
-  --titlebar-background: var(--background-primary);
-  --titlebar-background-focused: var(--background-primary);
+  --titlebar-background: color-mix(in srgb, var(--background-primary) 60%, transparent);
+  --titlebar-background-focused: color-mix(in srgb, var(--background-primary) 60%, transparent);
 }
 body:has(.workspace-split.mod-left-split.is-sidedock-collapsed):has(.workspace-split.mod-right-split.is-sidedock-collapsed) .titlebar {
-  background-color: var(--background-primary);
+  background-color: color-mix(in srgb, var(--background-primary) 60%, transparent);
 }
 
 /* ---------- ZEN MODE в отдельном окне (popout / «Open in new window») ----------
@@ -171,24 +171,72 @@ body:not(:has(.workspace-split.mod-left-split)) .workspace-split.mod-root .works
   display: none;
 }
 body:not(:has(.workspace-split.mod-left-split)) {
-  --titlebar-background: var(--background-primary) !important;
-  --titlebar-background-focused: var(--background-primary) !important;
+  --titlebar-background: color-mix(in srgb, var(--background-primary) 60%, transparent) !important;
+  --titlebar-background-focused: color-mix(in srgb, var(--background-primary) 60%, transparent) !important;
   --titlebar-text-color: var(--text-muted);
 }
 body:not(:has(.workspace-split.mod-left-split)) .titlebar,
 body:not(:has(.workspace-split.mod-left-split)) .titlebar-inner {
-  background-color: var(--background-primary) !important;
+  background-color: color-mix(in srgb, var(--background-primary) 60%, transparent) !important;
+}
+
+/* ---------- Заголовок окна (.titlebar-text) — слева, не болдом, с fade ----------
+   По умолчанию текст заголовка окна центрируется (часто абсолютным позициониро-
+   ванием), поэтому одного text-align недостаточно — сбрасываем position/left/
+   transform. Шрифт Bear, обычный вес, отступ слева под кнопки окна (macOS) и
+   полупрозрачный fade-градиент к правому краю. */
+.titlebar-inner {
+  justify-content: flex-start !important;
+}
+.titlebar-text {
+  font-family: var(--font-heading);
+  font-weight: 400 !important;            /* не болдом */
+
+  /* прижать влево: гасим возможное абсолютное центрирование */
+  position: static !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  text-align: left !important;
+  margin-left: 78px;                      /* место под traffic lights macOS */
+  margin-right: auto;
+
+  /* полупрозрачный fade к правому краю */
+  opacity: 0.6;
+  -webkit-mask-image: linear-gradient(to right, #000 60%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 60%, transparent 100%);
 }
 
 /* ---------- Убрать верхний padding у .cm-scroller (всегда) ---------- */
-.cm-scroller {
-  padding-top: 0;
-}
+/* .cm-scroller {
+  padding-top: 0 !important;
+} */
 
 /* ---------- Имя файла (inline title) в документе — скрыть ----------
    .inline-title — заголовок-имя файла над текстом в редакторе и reading view. */
 .inline-title {
   display: none;
+}
+
+/* ---------- Ribbon: скрыть лишние иконки ----------
+   .side-dock-ribbon-action — иконки-экшены в левой ленте. Прячем поштучно по
+   aria-label (= тексту тултипа). «Reload file from disk» оставляем. */
+.side-dock-ribbon-action[aria-label="Open quick switcher"],
+.side-dock-ribbon-action[aria-label="Open graph view"],
+.side-dock-ribbon-action[aria-label="Create new canvas"],
+.side-dock-ribbon-action[aria-label="Open today's daily note"],
+.side-dock-ribbon-action[aria-label="Insert template"],
+.side-dock-ribbon-action[aria-label="Open command palette"],
+.side-dock-ribbon-action[aria-label="Create new base"] {
+  display: none !important;
+}
+
+/* ---------- Свойства (properties / frontmatter) в документе — скрыть ----------
+   .metadata-container — блок свойств над текстом. Даже свёрнутый (.is-collapsed)
+   он занимает высоту, т.к. его display задаётся через --metadata-display-editing.
+   Перебиваем !important, чтобы убрать блок полностью. */
+.metadata-container {
+  display: none !important;
 }
 
 /* --- Fix badge rendering (no README edits, no Strict line breaks) --- */
