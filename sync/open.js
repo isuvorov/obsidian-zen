@@ -2,7 +2,7 @@
 // A pure-ESM port of the open-in-obsidian shell script:
 //   1) file already lives inside some vault   -> open it in place;
 //   2) file is under one of the --mirror dirs  -> mirror its structure into the vault via a symlink;
-//   3) otherwise                               -> symlink it into the vault's Temp/,
+//   3) otherwise                               -> symlink it into the vault's __temp/,
 //      preserving the path relative to ~/projects/ or ~.
 // Local attachments the note links to (images, etc.) are symlinked alongside it.
 // Opening goes through the obsidian:// scheme + the platform's "open".
@@ -173,7 +173,7 @@ async function openOne(file, ctx) {
     }
   }
 
-  // 3) otherwise — symlink into Temp/, preserving the path relative to ~/projects/ or ~.
+  // 3) otherwise — symlink into __temp/, preserving the path relative to ~/projects/ or ~.
   // home is taken through realpath: abspath is realpath'd too, otherwise the prefixes won't match.
   const home = realpathOr(os.homedir()) || os.homedir();
   const projects = path.join(home, "projects") + path.sep;
@@ -182,7 +182,7 @@ async function openOne(file, ctx) {
   else if (abspath.startsWith(home + path.sep)) relpath = abspath.slice(home.length + 1);
   else relpath = path.basename(abspath);
 
-  let linkpath = path.join(ctx.defaultVault, "Temp", relpath);
+  let linkpath = path.join(ctx.defaultVault, "__temp", relpath);
   fs.mkdirSync(path.dirname(linkpath), { recursive: true });
 
   // dedupe: if a symlink already points to exactly this file — reuse it

@@ -31,5 +31,8 @@
   ],
   "editor:set-heading-0": [
     { "modifiers": ["Mod"], "key": "0" }
+  ],
+  "obsidian-zen:reload-active-file": [
+    { "modifiers": ["Mod"], "key": "R" }
   ]
 }
