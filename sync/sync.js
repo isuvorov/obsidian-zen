@@ -1,7 +1,7 @@
-// Ядро синка настроек obsidian-zen в Obsidian-ваулт.
-// Безопасно: deep-merge JSON (значения профиля поверх, чужие ключи сохраняются),
-// плагины — union (ничего не отключаем), папки копируются без удаления лишнего,
-// workspace.json и заметки не трогаются, перед изменениями делается бэкап.
+// Core of syncing obsidian-zen settings into an Obsidian vault.
+// Safe by design: deep-merge JSON (profile values win, foreign keys are kept),
+// plugins are a union (nothing gets disabled), folders are copied without deleting extras,
+// workspace.json and notes are left untouched, a backup is made before any change.
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
@@ -20,7 +20,7 @@ function writeJson(p, data) {
   fs.writeFileSync(p, JSON.stringify(data, null, 2) + "\n");
 }
 
-// объекты сливаются рекурсивно; массивы и скаляры из src заменяют dst
+// objects are merged recursively; arrays and scalars from src replace dst
 function deepMerge(a, b) {
   if (!isPlainObject(a) || !isPlainObject(b)) return b;
   const out = { ...a };
@@ -42,7 +42,7 @@ function copyDirInto(src, dst) {
 
 const log = (...m) => console.log(...m);
 
-// Достаёт папку с исходниками профиля: локальный путь или git clone во временную папку.
+// Resolves the profile source folder: a local path, or a git clone into a temp folder.
 function resolveSource(from) {
   if (isDir(from)) return { dir: path.resolve(from), cleanup: () => {} };
   let url = from;
@@ -53,7 +53,7 @@ function resolveSource(from) {
   return { dir: tmp, cleanup: () => fs.rmSync(tmp, { recursive: true, force: true }) };
 }
 
-// Ставит сам плагин obsidian-zen прямо из корня репо и включает его (без BRAT).
+// Installs the obsidian-zen plugin straight from the repo root and enables it (no BRAT).
 function installPlugin(repoDir, vaultObs, dry) {
   const manifestPath = path.join(repoDir, "manifest.json");
   if (!fs.existsSync(manifestPath)) return;
@@ -78,7 +78,7 @@ function installPlugin(repoDir, vaultObs, dry) {
   }
 }
 
-// Применяет содержимое settings/: *.json -> merge (или union для community-plugins), папки -> copy.
+// Applies the contents of settings/: *.json -> merge (or union for community-plugins), folders -> copy.
 function applySettings(settingsDir, vaultObs, dry) {
   for (const e of fs.readdirSync(settingsDir, { withFileTypes: true })) {
     const name = e.name;
@@ -109,13 +109,13 @@ function applySettings(settingsDir, vaultObs, dry) {
 export async function sync(opts) {
   const vaultObs = path.join(opts.vault, ".obsidian");
   if (!isDir(vaultObs)) {
-    throw new Error(`Не похоже на ваулт: нет ${vaultObs}. Открой его в Obsidian хотя бы раз.`);
+    throw new Error(`Doesn't look like a vault: ${vaultObs} is missing. Open it in Obsidian at least once.`);
   }
 
   const src = resolveSource(opts.from);
   try {
     const settingsDir = path.join(src.dir, "settings");
-    if (!isDir(settingsDir)) throw new Error(`В источнике нет settings/: ${src.dir}`);
+    if (!isDir(settingsDir)) throw new Error(`The source has no settings/: ${src.dir}`);
 
     const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
     const bak = path.join(opts.vault, `.obsidian.bak-${stamp}`);
@@ -128,8 +128,8 @@ export async function sync(opts) {
     log("");
     log(
       opts.dry
-        ? "Dry-run: ничего не изменено."
-        : `Готово. Бэкап: ${bak}\nВ целевом ваулте нажми Cmd+R, затем включи плагин Zen Mode.`,
+        ? "Dry-run: nothing was changed."
+        : `Done. Backup: ${bak}\nIn the target vault press Cmd+R, then enable the Zen Mode plugin.`,
     );
   } finally {
     src.cleanup();

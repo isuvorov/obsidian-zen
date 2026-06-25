@@ -1,29 +1,28 @@
-# 🧘 Zen Mode
+# 🐻‍❄️ Zen Mode
 
-[![LSK.js](https://github.com/lskjs/presets/raw/main/docs/badge.svg)](https://github.com/lskjs)
-[![NPM version](https://badgen.net/npm/v/obsidian-zen)](https://www.npmjs.com/package/obsidian-zen)
-[![NPM downloads](https://badgen.net/npm/dt/obsidian-zen)](https://www.npmjs.com/package/obsidian-zen)
-[![Package size](https://img.shields.io/npm/unpacked-size/obsidian-zen?label=size&color=blue)](https://www.npmjs.com/package/obsidian-zen)
-[![Obsidian plugin](https://img.shields.io/badge/Obsidian-plugin-7c3aed.svg?logo=obsidian&logoColor=white)](https://obsidian.md)
-[![License](https://badgen.net/github/license/isuvorov/obsidian-zen)](https://github.com/isuvorov/obsidian-zen/blob/main/LICENSE)
-[![Write us in Telegram](https://img.shields.io/badge/write%20us-0088CC?logo=telegram&logoColor=white)](https://t.me/isuvorov)
+<p>
+  <a href="https://github.com/lskjs"><img alt="Made by LSK.js" src="https://github.com/lskjs/presets/raw/main/docs/badge.svg" height="20"></a>
+  <a href="https://www.npmjs.com/package/obsidian-zen"><img alt="NPM version" src="https://badgen.net/npm/v/obsidian-zen" height="20"></a>
+  <a href="https://www.npmjs.com/package/obsidian-zen"><img alt="NPM downloads" src="https://badgen.net/npm/dt/obsidian-zen" height="20"></a>
+  <a href="https://www.npmjs.com/package/obsidian-zen"><img alt="Package size" src="https://img.shields.io/npm/unpacked-size/obsidian-zen?label=size&amp;color=blue" height="20"></a>
+  <a href="https://obsidian.md"><img alt="Obsidian plugin" src="https://img.shields.io/badge/Obsidian-plugin-7c3aed.svg?logo=obsidian&amp;logoColor=white" height="20"></a>
+  <a href="https://github.com/isuvorov/obsidian-zen/blob/main/LICENSE"><img alt="License" src="https://badgen.net/github/license/isuvorov/obsidian-zen" height="20"></a>
+  <a href="https://t.me/isuvorov"><img alt="Write us in Telegram" src="https://img.shields.io/badge/write%20us-0088CC?logo=telegram&amp;logoColor=white" height="20"></a>
+</p>
 
 <div align="center">
-  <h3><p><strong>🧘 Distraction-free Obsidian with a clean red-accent styling — a plugin overlay on top of any theme, rolled out to any vault with one command 🔴</strong></p></h3>
+  <h3><p><strong>🐻‍❄️ Zen Mode for Obsidian 🐻‍❄️</strong></p></h3>
 </div>
 
 <img src="./docs/logo.png" align="right" width="200" height="200" alt="Zen Mode logo" />
 
-**🧘 Zen mode** — collapse both sidebars and the chrome hides: no view header, no tabs, titlebar blended into the background <br/>
-**🎨 Red-accent styling** — red accents, red list bullets that change shape by nesting level, refined heading weights; light & dark <br/>
-**🧩 Overlay, not a theme** — sits on top of your current theme; turn it off and your look is untouched <br/>
-**⌨️ Heading toggles** — `Toggle heading 1…6` commands, bound to `Cmd+1…6` by the bundled profile; press again to remove <br/>
-**📲 Ships via BRAT** — add the repo once, then it auto-updates on every device <br/>
-**⚡ One command, any vault** — `npx obsidian-zen <vault>` installs the plugin and your settings <br/>
-**🔒 Non-destructive sync** — deep-merges your JSON, backs up first, never touches notes or `workspace.json` <br/>
-**🖥️ Cross-platform** — the plugin works on desktop and mobile; the sync CLI runs on Node or Bun <br/>
+**🧘 Zen mode** — no header, no tabs, no noise — focus on content <br/>
+**🎨 Accent** — accent only important, powered by Cupertino <br/>
+**⌨️ Hotkeys** — Familiar hotkeys from other editors like Bear App <br/>
+**⚡ Sync** — keeps any vault in sync with your own setting <br/>
+**📂 File** — open any file without adding a vault <br/>
 
-This is a single repository with two artifacts: the **plugin** (`styles.css` + `main.js`) provides the styling, zen mode and hotkeys, while the **CLI sync tool** (`sync/`) rolls that plugin out together with a settings profile (`settings/`) into any vault. Install it via BRAT — or with a single command.
+
 
 ---
 
@@ -40,21 +39,29 @@ is removed. Repeat once per device/vault; after that updates arrive on their own
 > BRAT pulls `main.js` + `manifest.json` + `styles.css` from the latest GitHub **Release**.
 > Without a release you'll get a `no releases found` error — see [Releases](#releases-fully-automated-no-tags-needed).
 
-## Roll out to any vault with one command (CLI, bun)
+## CLI: one command, any vault
 
-Instead of fiddling with BRAT in every vault, you can roll out the **plugin +
-settings** with a single command. The CLI (`sync/`, ESM JS built on
-[yargs](https://github.com/yargs/yargs)) installs the plugin straight from the
-repository and applies the `settings/` profile **without breaking** the target
-vault. Runs on Node and Bun.
+The CLI (`sync/`, ESM JS built on [yargs](https://github.com/yargs/yargs)) ships
+two subcommands. Runs on Node and Bun.
+
+| Subcommand                  | What it does                                                              |
+|-----------------------------|--------------------------------------------------------------------------|
+| `obsidian-zen sync <vault>` | install the plugin + settings profile into a vault (non-destructive)     |
+| `obsidian-zen open <files>` | symlink any external `.md` (and its attachments) into a vault and open it |
+
+### `sync` — roll out the plugin and settings
+
+Instead of fiddling with BRAT in every vault, roll out the **plugin + settings**
+with a single command. It installs the plugin straight from the repository and
+applies the `settings/` profile **without breaking** the target vault.
 
 ```bash
 # default source — the isuvorov/obsidian-zen GitHub repository:
-npx obsidian-zen ~/vaults/work            # roll out
-npx obsidian-zen ~/vaults/work --dry-run  # show the plan without changes
+npx obsidian-zen sync ~/vaults/work            # roll out
+npx obsidian-zen sync ~/vaults/work --dry-run  # show the plan without changes
 
 # from a local clone (for development):
-node sync/cli.js ~/vaults/work --from .   # or: bun sync/cli.js ...
+node sync/cli.js sync ~/vaults/work --from .   # or: bun sync/cli.js ...
 ```
 
 After rolling out, press `Cmd+R` in the vault, then enable the **Zen Mode** plugin.
@@ -62,21 +69,50 @@ After rolling out, press `Cmd+R` in the vault, then enable the **Zen Mode** plug
 > Run it with anything — `npx` / `bunx` / `node` / `bun` (it's plain ESM JS).
 > To run from a clone, install dependencies first: `npm install` (or `bun install`).
 
----
-
-## CLI configuration
-
-### Flags
+#### `sync` flags
 
 | Argument    | Alias | Default                                    | Purpose                                          |
 |-------------|-------|--------------------------------------------|--------------------------------------------------|
 | `<vault>`   | —     | (required)                                 | path to the target Obsidian vault                |
 | `--from`    | `-f`  | `https://github.com/isuvorov/obsidian-zen` | profile source: folder \| git URL \| `owner/repo` |
 | `--dry-run` | `-n`  | `false`                                    | show the plan without changes                    |
-| `--help`    | `-h`  | —                                          | show help                                        |
-| `--version` | `-v`  | —                                          | show version                                     |
 
-### What gets synced
+### `open` — open any Markdown file in Obsidian
+
+Open an `.md` file that lives **anywhere** on disk in Obsidian, even outside any
+vault. It resolves the file against your vaults and:
+
+1. **already inside a vault** → opens it in place;
+2. **under a `--mirror` directory** → recreates that directory's inner structure in
+   the vault and links the file into it;
+3. **anywhere else** → symlinks it into the vault's `Temp/`, preserving the path
+   relative to `~/projects/` (or `~`).
+
+Local attachments the note links to — `![](img.png)` and `<img src="...">` — are
+symlinked alongside it, so images render. The destination defaults to your
+**active** vault (from `obsidian.json`); override it with `--vault`.
+
+```bash
+npx obsidian-zen open README.md                       # open in the active vault
+npx obsidian-zen open ~/projects/app/docs/*.md         # several files at once
+npx obsidian-zen open NOTES.md --vault ~/vaults/work   # pick the destination vault
+npx obsidian-zen open paper.md --mirror ~/projects/app # mirror the tree under the vault
+```
+
+> Tip: alias it for one-keystroke opening — `alias ob='obsidian-zen open'`, then `ob note.md`.
+
+#### `open` flags
+
+| Argument     | Alias | Default                | Purpose                                                          |
+|--------------|-------|------------------------|------------------------------------------------------------------|
+| `<files..>`  | —     | (required)             | one or more `.md` files to open                                  |
+| `--vault`    | `-V`  | active vault           | destination vault for the symlinks                               |
+| `--mirror`   | `-m`  | —                      | directory whose inner structure is mirrored into the vault (repeatable) |
+
+> Currently the `open` registry lookup and `Temp/` layout target macOS/Linux
+> (`obsidian.json` under `~/Library/Application Support` / `~/.config`).
+
+### What `sync` writes
 
 The profile lives in **`settings/`** of this repository — edit it there and the
 command rolls out the updated profile:
