@@ -10,6 +10,13 @@ import { execFileSync } from "node:child_process";
 const NEVER_TOUCH = new Set(["workspace.json", "workspace-mobile.json"]);
 
 const isDir = (p) => fs.existsSync(p) && fs.statSync(p).isDirectory();
+const isLink = (p) => {
+  try {
+    return fs.lstatSync(p).isSymbolicLink();
+  } catch {
+    return false;
+  }
+};
 const isPlainObject = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
 
 function readJson(p) {
@@ -62,6 +69,13 @@ function installPlugin(repoDir, vaultObs, dry) {
 
   const destDir = path.join(vaultObs, "plugins", id);
   log(`[plugin] ${id} -> .obsidian/plugins/${id}/`);
+  // A dev setup may symlink the plugin folder straight at the source repo (live
+  // editing). copyFileSync would then write *through* the link and clobber the
+  // repo's own files. Drop the symlink first so we copy into a fresh real folder.
+  if (isLink(destDir)) {
+    log(`[unlink] .obsidian/plugins/${id} is a symlink -> replacing with a real copy`);
+    if (!dry) fs.unlinkSync(destDir);
+  }
   if (!dry) {
     fs.mkdirSync(destDir, { recursive: true });
     for (const f of ["manifest.json", "main.js", "styles.css"]) {

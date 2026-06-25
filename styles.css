@@ -158,6 +158,28 @@ body:has(.workspace-split.mod-left-split.is-sidedock-collapsed):has(.workspace-s
   background-color: var(--background-primary);
 }
 
+/* ---------- ZEN MODE в отдельном окне (popout / «Open in new window») ----------
+   У отдельного окна Obsidian нет сайдбаров ВООБЩЕ, поэтому условие zen mode выше
+   (свёрнуты оба сайдбара) в нём никогда не выполняется — и view header, вкладки и
+   серый titlebar остаются видны. Признак popout-окна: в его body НЕТ левого
+   сплита (.mod-left-split). В главном окне левый сплит всегда присутствует в DOM
+   (даже свёрнутый), так что эти правила срабатывают ТОЛЬКО в отдельных окнах. */
+body:not(:has(.workspace-split.mod-left-split)) .workspace-split.mod-root .view-header {
+  display: none;
+}
+body:not(:has(.workspace-split.mod-left-split)) .workspace-split.mod-root .workspace-tab-header-container {
+  display: none;
+}
+body:not(:has(.workspace-split.mod-left-split)) {
+  --titlebar-background: var(--background-primary) !important;
+  --titlebar-background-focused: var(--background-primary) !important;
+  --titlebar-text-color: var(--text-muted);
+}
+body:not(:has(.workspace-split.mod-left-split)) .titlebar,
+body:not(:has(.workspace-split.mod-left-split)) .titlebar-inner {
+  background-color: var(--background-primary) !important;
+}
+
 /* ---------- Убрать верхний padding у .cm-scroller (всегда) ---------- */
 .cm-scroller {
   padding-top: 0;
@@ -167,4 +189,64 @@ body:has(.workspace-split.mod-left-split.is-sidedock-collapsed):has(.workspace-s
    .inline-title — заголовок-имя файла над текстом в редакторе и reading view. */
 .inline-title {
   display: none;
+}
+
+/* --- Fix badge rendering (no README edits, no Strict line breaks) --- */
+
+/* Match badge images by their source host. */
+/* shields.io | badgen.net | .../badge/... | *.svg badge */
+
+/* 1) Keep SVG badges at natural size — Cupertino's "full-width media" blows
+      them up because they have no HTML width attribute. Works in both Reading
+      view and Live Preview. */
+:is(.markdown-rendered, .cm-content) img:is([src*="shields.io"], [src*="badgen.net"], [src*="badge.svg"], [src*="/badge/"]) {
+  width: auto !important;
+  display: inline-block;
+  vertical-align: middle;
+  padding: 0 !important;
+}
+
+/* 2) Hide Obsidian's external-link arrow (↗) on links that wrap a badge image. */
+:is(.markdown-rendered, .cm-content) a:is(.external-link, [href^="http"]):has(img) {
+  background-image: none !important;
+  padding-right: 0 !important;
+}
+:is(.markdown-rendered, .cm-content) a:is(.external-link, [href^="http"]):has(img)::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* 3) READING VIEW: badges live on separate source lines, so Obsidian inserts
+      <br> between them and the row collapses into a column. Drop those breaks
+      inside any paragraph that holds badge links and lay the badges out as a
+      wrapping row. (Reading view only — Live Preview keeps each source line as
+      its own block and cannot be reflowed via CSS.) */
+.markdown-rendered p:has(a:has(img[src*="shields.io"])) br,
+.markdown-rendered p:has(a:has(img[src*="badgen.net"])) br,
+.markdown-rendered p:has(a:has(img[src*="/badge/"])) br,
+.markdown-rendered p:has(a:has(img[src*="badge.svg"])) br {
+  display: none !important;
+}
+.markdown-rendered p:has(a:has(img[src*="shields.io"])),
+.markdown-rendered p:has(a:has(img[src*="badgen.net"])),
+.markdown-rendered p:has(a:has(img[src*="/badge/"])),
+.markdown-rendered p:has(a:has(img[src*="badge.svg"])) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --- Hide files/folders whose name starts with "__" from the file explorer --- */
+
+/* Obsidian stores the full vault path in data-path on the title element:
+     root file:   __draft.md          -> matches [data-path^="__"]
+     nested file: notes/__draft.md     -> matches [data-path*="/__"]
+   We hide the whole .nav-file / .nav-folder via :has() so no empty row stays. */
+
+.nav-file:has(> .nav-file-title[data-path^="__temp"]),
+.nav-file:has(> .nav-file-title[data-path*="/__temp"]),
+.nav-folder:has(> .nav-folder-title[data-path^="__temp"]),
+.nav-folder:has(> .nav-folder-title[data-path*="/__temp"]) {
+  display: none !important;
 }
