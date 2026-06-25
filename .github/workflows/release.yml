@@ -1,0 +1,73 @@
+name: Release
+
+# Push в main с изменением файлов плагина или CLI -> ЕДИНЫЙ релиз обоих артефактов
+# с одной и той же версией:
+#   - GitHub Release (его тянет BRAT)
+#   - npm publish (для `npx obsidian-zen`)
+# Единая версия = major.minor из manifest.json + patch = github.run_number
+# (ОДИН счётчик на оба артефакта). Штампуется и в manifest.json, и в package.json,
+# поэтому версия в GitHub Release, npm и обоих файлах всегда совпадает.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "styles.css"
+      - "main.js"
+      - "manifest.json"
+      - "sync/**"
+      - "package.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Required files exist
+        run: |
+          for f in main.js manifest.json styles.css package.json; do
+            test -f "$f" || { echo "::error::Нет файла $f"; exit 1; }
+          done
+
+      - name: Compute version
+        id: ver
+        run: |
+          BASE="$(jq -r '.version' manifest.json | cut -d. -f1,2)"
+          VERSION="${BASE}.${{ github.run_number }}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Release version: $VERSION"
+
+      - name: Stamp version into manifest.json and package.json
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          jq --arg v "$VERSION" '.version=$v' manifest.json > manifest.tmp
+          mv manifest.tmp manifest.json
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+      - name: GitHub Release (BRAT pulls this)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          gh release create "$VERSION" \
+            --target "${{ github.sha }}" \
+            --title "$VERSION" \
+            --generate-notes \
+            main.js manifest.json styles.css
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public

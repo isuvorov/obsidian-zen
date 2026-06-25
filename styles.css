@@ -1,0 +1,170 @@
+/* ===========================================================
+   Zen Mode look for the Obsidian editor & reading view:
+   a clean red-accent palette and refined typography.
+   =========================================================== */
+
+/* ---------- LIGHT — red-accent palette ---------- */
+.theme-light {
+  --background-primary:      #ffffff;   /* editor background */
+  --background-primary-alt:  #fafafa;
+  --background-secondary:    #f7f7f7;   /* sidebar background */
+  --text-normal:             #333333;   /* primary text */
+  --text-muted:              #888888;   /* secondary text */
+  --text-faint:              #aaaaaa;
+  --text-accent:             #d14c3e;   /* signature red */
+  --text-accent-hover:       #b23f33;
+  --interactive-accent:      #d14c3e;
+  --text-selection:          rgba(209, 76, 62, 0.14);
+  --code-background:         #f5f5f5;
+  --tag-background:          rgba(245, 92, 92, 0.12);  /* фикс. красный тинт, не accent */
+  --tag-color:               #f55c5c;   /* фикс. красный, не завязан на accent */
+  --list-marker-color:       #d14c3e;   /* red bullets */
+}
+
+/* ---------- DARK — red-accent palette ---------- */
+.theme-dark {
+  --background-primary:      #1d1e1f;   /* editor background */
+  --background-primary-alt:  #232425;
+  --background-secondary:    #181919;
+  --text-normal:             #dfe0e0;   /* primary text */
+  --text-muted:              #9a9b9b;
+  --text-faint:              #6a6b6b;
+  --text-accent:             #d14c3e;   /* signature red */
+  --text-accent-hover:       #e4604f;
+  --interactive-accent:      #d14c3e;
+  --text-selection:          rgba(209, 76, 62, 0.20);
+  --code-background:         #2a2b2b;
+  --tag-background:          rgba(245, 92, 92, 0.16);  /* фикс. красный тинт, не accent */
+  --tag-color:               #f55c5c;   /* фикс. красный, не завязан на accent */
+  --list-marker-color:       #e4604f;   /* red bullets (dark) */
+}
+
+/* ---------- Typography — Bear Sans UI (installed), 16px, line-height 1.6 ---------- */
+body {
+  --font-text: "Bear Sans UI", -apple-system, "Helvetica Neue", sans-serif;
+  --font-heading: "Bear Sans UI Heading", "Bear Sans UI", -apple-system, sans-serif;
+}
+
+/* ---------- Headings — medium weight ---------- */
+.markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3,
+.markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6,
+.cm-header, .HyperMD-header {
+  font-family: var(--font-heading);
+}
+.markdown-rendered h1, .cm-header-1, .HyperMD-header-1 { font-weight: 500; font-size: 1.9em; }
+.markdown-rendered h2, .cm-header-2, .HyperMD-header-2 { font-weight: 500; font-size: 1.65em; }
+.markdown-rendered h3, .cm-header-3, .HyperMD-header-3 { font-weight: 500; font-size: 1.25em; }
+.markdown-rendered h4, .cm-header-4, .HyperMD-header-4 { font-weight: 500; font-size: 1.1em; }
+.markdown-rendered h5, .cm-header-5, .HyperMD-header-5 { font-weight: 500; font-size: 1.0em; }
+.markdown-rendered h6, .cm-header-6, .HyperMD-header-6 { font-weight: 500; font-size: 0.9em; }
+
+/* Bold inside a heading (**bold**) must stay heavier than the heading's
+   own weight — otherwise <strong> (700) looks thinner than a 900 heading. */
+.markdown-rendered h1 strong, .markdown-rendered h2 strong,
+.markdown-rendered h3 strong, .markdown-rendered h4 strong,
+.markdown-rendered h5 strong, .markdown-rendered h6 strong,
+.markdown-rendered h1 b, .markdown-rendered h2 b, .markdown-rendered h3 b,
+.markdown-rendered h4 b, .markdown-rendered h5 b, .markdown-rendered h6 b,
+.cm-header.cm-strong {
+  font-weight: 800;
+}
+
+/* ---------- List bullets — different shape per level ----------
+   Obsidian draws bullets via .list-bullet::after (a styled box), NOT native
+   list-style. So we reshape THAT pseudo per depth — no content, no duplicates.
+   Level 1 stays the default filled disc. */
+
+/* Cycle of 3 repeats every level: dot (1,4) -> ring (2,5) -> diamond (3,6).
+   Each rule sets ALL props so deeper nesting doesn't leak styles. */
+
+/* RING — levels 2, 5 */
+.markdown-reading-view ul>li>ul>li>.list-bullet::after,
+.markdown-reading-view ul>li>ul>li>ul>li>ul>li>ul>li>.list-bullet::after,
+.markdown-source-view.mod-cm6 .HyperMD-list-line-2 .list-bullet::after,
+.markdown-source-view.mod-cm6 .HyperMD-list-line-5 .list-bullet::after {
+  background-color: transparent;
+  border: 1px solid var(--list-marker-color);
+  border-radius: 50%;
+  transform: none;
+}
+
+/* DIAMOND — levels 3, 6 */
+.markdown-reading-view ul>li>ul>li>ul>li>.list-bullet::after,
+.markdown-reading-view ul>li>ul>li>ul>li>ul>li>ul>li>ul>li>.list-bullet::after,
+.markdown-source-view.mod-cm6 .HyperMD-list-line-3 .list-bullet::after,
+.markdown-source-view.mod-cm6 .HyperMD-list-line-6 .list-bullet::after {
+  background-color: var(--list-marker-color);
+  border: none;
+  border-radius: 0;
+  transform: rotate(45deg);
+}
+
+/* DOT — reset level 4 back to a filled circle (level 1 is default) */
+.markdown-reading-view ul>li>ul>li>ul>li>ul>li>.list-bullet::after,
+.markdown-source-view.mod-cm6 .HyperMD-list-line-4 .list-bullet::after {
+  background-color: var(--list-marker-color);
+  border: none;
+  border-radius: 50%;
+  transform: none;
+}
+
+/* ---------- Hide list indentation guide (the vertical "ruler" line) ---------- */
+.markdown-source-view.mod-cm6,
+.markdown-reading-view {
+  --indentation-guide-color: transparent;
+  --indentation-guide-color-active: transparent;
+}
+
+
+
+body {
+  --list-text-gap: 0.45em;
+}
+
+/* .list-bullet существует и в Reading view, и в Live Preview — целимся в него
+   единообразно, поэтому отступ одинаковый в обоих режимах. */
+.markdown-preview-view .list-bullet,
+.markdown-source-view.mod-cm6 .list-bullet {
+  margin-inline-end: var(--list-text-gap);
+}
+
+/* ---------- ZEN MODE ----------
+   Состояние, когда свёрнуты СРАЗУ ОБА сайдбара (и левый, и правый), мы
+   называем zen mode (zenmode). Свёрнутый сайдбар получает класс
+   .is-sidedock-collapsed. Правый сплит идёт в DOM ПОСЛЕ .mod-root, поэтому
+   комбинатором ~ его не достать — проверяем состояние обоих сплитов через
+   :has() на самой .workspace. */
+
+/* В zen mode скрываем view header основной области
+   (эквивалент showViewHeader: false). */
+.workspace:has(> .workspace-split.mod-left-split.is-sidedock-collapsed):has(> .workspace-split.mod-right-split.is-sidedock-collapsed) .workspace-split.mod-root .view-header {
+  display: none;
+}
+
+/* В zen mode скрываем строку с вкладками (.workspace-tab-header-container). */
+.workspace:has(> .workspace-split.mod-left-split.is-sidedock-collapsed):has(> .workspace-split.mod-right-split.is-sidedock-collapsed) .workspace-split.mod-root .workspace-tab-header-container {
+  display: none;
+}
+
+/* В zen mode сама полоса заголовка (.titlebar) лежит ВЫШЕ .workspace, поэтому
+   потомком от .workspace её не достать — она и остаётся серой. Вешаем условие
+   на body: переопределяем --titlebar-background* (CSS-переменные наследуются
+   вниз и докрашивают titlebar) и на всякий случай красим .titlebar напрямую. */
+body:has(.workspace-split.mod-left-split.is-sidedock-collapsed):has(.workspace-split.mod-right-split.is-sidedock-collapsed) {
+  --titlebar-background: var(--background-primary);
+  --titlebar-background-focused: var(--background-primary);
+}
+body:has(.workspace-split.mod-left-split.is-sidedock-collapsed):has(.workspace-split.mod-right-split.is-sidedock-collapsed) .titlebar {
+  background-color: var(--background-primary);
+}
+
+/* ---------- Убрать верхний padding у .cm-scroller (всегда) ---------- */
+.cm-scroller {
+  padding-top: 0;
+}
+
+/* ---------- Имя файла (inline title) в документе — скрыть ----------
+   .inline-title — заголовок-имя файла над текстом в редакторе и reading view. */
+.inline-title {
+  display: none;
+}

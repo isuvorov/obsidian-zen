@@ -1,0 +1,35 @@
+{
+  "command-palette:open": [
+    { "modifiers": ["Mod", "Shift"], "key": "P" }
+  ],
+  "switcher:open": [
+    { "modifiers": ["Mod"], "key": "P" }
+  ],
+  "app:toggle-left-sidebar": [
+    { "modifiers": ["Mod"], "key": "§" }
+  ],
+  "app:toggle-right-sidebar": [
+    { "modifiers": ["Mod", "Shift"], "key": "§" }
+  ],
+  "obsidian-zen:toggle-heading-1": [
+    { "modifiers": ["Mod"], "key": "1" }
+  ],
+  "obsidian-zen:toggle-heading-2": [
+    { "modifiers": ["Mod"], "key": "2" }
+  ],
+  "obsidian-zen:toggle-heading-3": [
+    { "modifiers": ["Mod"], "key": "3" }
+  ],
+  "obsidian-zen:toggle-heading-4": [
+    { "modifiers": ["Mod"], "key": "4" }
+  ],
+  "obsidian-zen:toggle-heading-5": [
+    { "modifiers": ["Mod"], "key": "5" }
+  ],
+  "obsidian-zen:toggle-heading-6": [
+    { "modifiers": ["Mod"], "key": "6" }
+  ],
+  "editor:set-heading-0": [
+    { "modifiers": ["Mod"], "key": "0" }
+  ]
+}
