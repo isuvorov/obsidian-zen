@@ -1,6 +1,6 @@
 {
   "name": "obsidian-zen",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "CLI to roll out the Zen Mode Obsidian plugin and settings into any vault.",
   "type": "module",
   "author": "Igor Suvorov <hi@isuvorov.com>",
@@ -52,9 +52,15 @@
         "@semantic-release/github",
         {
           "assets": [
-            { "path": "main.js" },
-            { "path": "manifest.json" },
-            { "path": "styles.css" }
+            {
+              "path": "main.js"
+            },
+            {
+              "path": "manifest.json"
+            },
+            {
+              "path": "styles.css"
+            }
           ]
         }
       ],
