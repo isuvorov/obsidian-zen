@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/isuvorov/obsidian-zen/compare/0.2.1...0.2.2) (2026-06-26)
+
+
+### Bug Fixes
+
+* add vault switching functionality with fuzzy palette ([c78b4f5](https://github.com/isuvorov/obsidian-zen/commit/c78b4f5bccc7a5f0a607cc64572af43e110e3504))
+
 ## [0.2.1](https://github.com/isuvorov/obsidian-zen/compare/0.2.0...0.2.1) (2026-06-26)
 
 
