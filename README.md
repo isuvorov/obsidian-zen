@@ -36,7 +36,7 @@ Have an Obsidian vault? Roll out the plugin and settings with one command:
 npx obsidian-zen sync ~/vaults/work
 ```
 
-Reload the Obsidian app if needed, then press `Cmd + §` / `Cmd + ~`. Enjoy the silence.
+Reload the Obsidian app if needed, then press `Cmd + §` / `Cmd + ~` or Swipe. Enjoy the silence.
 
 ---
 
@@ -136,6 +136,18 @@ profile binds keys to them:
 Heading toggle behaves like `Cmd+B` for bold: one press sets a heading of the
 given level, pressing again at the same level removes it. Works across multi-line
 selections (blank lines are left untouched).
+
+### Enter in Zen Mode
+
+Zen mode strips the editor down to your content — the view header, tab bar and
+inline title disappear, and the titlebar blends into the background. Nothing but
+the words on the page, so you can write or read without the UI tugging at your
+attention. It kicks in the moment **both** sidebars are collapsed.
+
+Get there two ways. By **hotkey** — `Cmd+§` toggles the left sidebar and
+`Cmd+Shift+§` the right; collapse both and you're in. Or by **swipe** — a
+two-finger trackpad swipe toggles the left sidebar, the way it works on iPad /
+in Things 3: **swipe right to reveal, swipe left to hide**.
 
 ---
 

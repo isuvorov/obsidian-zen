@@ -17,11 +17,34 @@
 //    своим шаблоном (а не дописывать к стандартному) на тех же событиях, что
 //    слушает Obsidian. В шаблоне нет слова «Obsidian» и версии — значит и в
 //    шапке окна их не будет. При выключении плагина возвращаем исходный заголовок.
+// 5) Свайп двумя пальцами по трекпаду открывает/закрывает левый сайдбар —
+//    как на iPad / в Things 3. Свайп вправо раскрывает, влево сворачивает.
+//    На macOS жест приходит как wheel с доминирующим deltaX. Слушаем пассивно,
+//    preventDefault не зовём — обычный горизонтальный скролл не ломается.
 // Сборка/транспиляция не нужна: Obsidian грузит main.js как есть.
 const { Plugin, Notice, MarkdownView } = require('obsidian');
 
 // Шаблон заголовка окна. Плейсхолдеры: {{filename}}, {{filepath}}, {{vault}}.
 const WINDOW_TITLE_TEMPLATE = '{{filename}} — {{vault}}';
+
+// --- Свайп для левого сайдбара ---
+const SWIPE_THRESHOLD = 60;     // суммарный горизонтальный путь (px) для срабатывания
+const SWIPE_RESET_MS = 300;     // пауза, после которой накопление пути сбрасывается
+const SWIPE_COOLDOWN_MS = 600;  // защита от повторного срабатывания за тот же жест
+// Если направления ощущаются перевёрнутыми — поставь true.
+const SWIPE_INVERT = false;
+
+// Курсор над горизонтально прокручиваемым блоком (таблица, длинный код)?
+// Там deltaX — это обычный скролл, а не жест: сайдбар трогать не нужно.
+function isInHorizontalScroller(node) {
+  for (let el = node; el && el !== document.body; el = el.parentElement) {
+    if (el.scrollWidth > el.clientWidth + 2) {
+      const ox = getComputedStyle(el).overflowX;
+      if (ox === 'auto' || ox === 'scroll') return true;
+    }
+  }
+  return false;
+}
 
 // Снять любой существующий заголовок со строки -> вернуть «тело».
 function headingBody(line) {
@@ -76,6 +99,43 @@ module.exports = class ZenMode extends Plugin {
     });
 
     this.setupWindowTitle();
+    this.setupSidebarSwipe();
+  }
+
+  // Горизонтальный свайп двумя пальцами по трекпаду тогглит левый сайдбар.
+  // На macOS такой жест прилетает как серия wheel-событий с доминирующим deltaX.
+  // Накапливаем путь, при превышении порога раскрываем/сворачиваем сайдбар.
+  setupSidebarSwipe() {
+    let accX = 0;        // накопленный горизонтальный путь текущего жеста
+    let lastTs = 0;      // время последнего wheel-события
+    let cooldownUntil = 0;
+
+    this.registerDomEvent(window, 'wheel', (e) => {
+      const now = Date.now();
+      if (now < cooldownUntil) return;
+
+      // Интересует только горизонтально-доминирующее движение (жест, не скролл).
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) { accX = 0; return; }
+
+      // Над таблицей/кодом deltaX — это скролл содержимого, а не жест сайдбара.
+      if (isInHorizontalScroller(e.target)) { accX = 0; return; }
+
+      if (now - lastTs > SWIPE_RESET_MS) accX = 0; // новый жест — копим заново
+      lastTs = now;
+      accX += e.deltaX;
+
+      if (Math.abs(accX) < SWIPE_THRESHOLD) return;
+
+      const left = this.app.workspace.leftSplit;
+      if (!left) return;
+
+      // macOS natural scroll: свайп пальцами вправо → deltaX < 0 → раскрыть.
+      const expand = SWIPE_INVERT ? accX > 0 : accX < 0;
+      if (expand) left.expand(); else left.collapse();
+
+      accX = 0;
+      cooldownUntil = now + SWIPE_COOLDOWN_MS;
+    }, { passive: true });
   }
 
   // Собирает заголовок окна по WINDOW_TITLE_TEMPLATE из текущего файла и vault.
