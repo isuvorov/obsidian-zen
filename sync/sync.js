@@ -37,6 +37,30 @@ function deepMerge(a, b) {
   return out;
 }
 
+// A normalized id for a key binding so the same combo compares equal regardless of
+// modifier order or letter case: "ctrl,mod|p".
+function comboId(b) {
+  const mods = [...(b.modifiers || [])].sort().join(",");
+  return `${mods}|${String(b.key || "").toLowerCase()}`;
+}
+
+// hotkeys.json maps a command id -> array of { modifiers, key } bindings. A plain
+// deep-merge lets the profile win per command, but it can't see that a combo the
+// profile claims may still be bound to a *foreign* command in the vault -> Obsidian
+// would then flag a conflict. So after merging we strip every profile-claimed combo
+// from the commands the profile doesn't define.
+function mergeHotkeys(cur, src) {
+  const merged = deepMerge(cur, src);
+  const claimed = new Set();
+  for (const id of Object.keys(src)) for (const b of src[id] || []) claimed.add(comboId(b));
+
+  for (const id of Object.keys(merged)) {
+    if (id in src) continue; // profile-owned commands keep their bindings verbatim
+    merged[id] = (merged[id] || []).filter((b) => !claimed.has(comboId(b)));
+  }
+  return merged;
+}
+
 function copyDirInto(src, dst) {
   fs.mkdirSync(dst, { recursive: true });
   for (const e of fs.readdirSync(src, { withFileTypes: true })) {
@@ -92,6 +116,63 @@ function installPlugin(repoDir, vaultObs, dry) {
   }
 }
 
+// Obsidian downloads a community theme's manifest.json + theme.css from the theme
+// repo's latest GitHub release. We replicate that so `cssTheme` actually resolves:
+// without the files in .obsidian/themes/<name>/ Obsidian silently drops the setting.
+const THEMES_REGISTRY =
+  "https://raw.githubusercontent.com/obsidianmd/obsidian-releases/HEAD/community-css-themes.json";
+
+async function fetchText(url) {
+  const res = await fetch(url, { redirect: "follow" });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return res.text();
+}
+
+// Looks up a theme's GitHub repo ("owner/name") by its display name in the registry.
+async function resolveThemeRepo(name) {
+  const list = JSON.parse(await fetchText(THEMES_REGISTRY));
+  const hit = list.find((t) => t.name === name);
+  return hit ? hit.repo : null;
+}
+
+// Downloads the latest release of a community theme into .obsidian/themes/<name>/.
+// The folder name must equal the theme's manifest name, which is what cssTheme points at.
+async function installTheme(vaultObs, name, dry) {
+  if (!name) return;
+
+  let repo;
+  try {
+    repo = await resolveThemeRepo(name);
+  } catch (err) {
+    log(`[theme] skip "${name}": cannot read themes registry (${err.message})`);
+    return;
+  }
+  if (!repo) {
+    log(`[theme] skip: "${name}" is not in the community themes registry`);
+    return;
+  }
+
+  const base = `https://github.com/${repo}/releases/latest/download`;
+  log(`[theme] ${name} <- ${repo} (latest release)`);
+  if (dry) return;
+
+  let manifest, css;
+  try {
+    [manifest, css] = await Promise.all([
+      fetchText(`${base}/manifest.json`),
+      fetchText(`${base}/theme.css`),
+    ]);
+  } catch (err) {
+    log(`[theme] skip "${name}": download failed (${err.message})`);
+    return;
+  }
+
+  const destDir = path.join(vaultObs, "themes", name);
+  fs.mkdirSync(destDir, { recursive: true });
+  fs.writeFileSync(path.join(destDir, "manifest.json"), manifest);
+  fs.writeFileSync(path.join(destDir, "theme.css"), css);
+}
+
 // Applies the contents of settings/: *.json -> merge (or union for community-plugins), folders -> copy.
 function applySettings(settingsDir, vaultObs, dry) {
   for (const e of fs.readdirSync(settingsDir, { withFileTypes: true })) {
@@ -107,6 +188,11 @@ function applySettings(settingsDir, vaultObs, dry) {
       const cur = fs.existsSync(destPath) ? readJson(destPath) : [];
       const next = Array.from(new Set([...cur, ...readJson(srcPath)]));
       log(`[union] ${name}`);
+      if (!dry) writeJson(destPath, next);
+    } else if (name === "hotkeys.json") {
+      const cur = fs.existsSync(destPath) ? readJson(destPath) : {};
+      const next = mergeHotkeys(cur, readJson(srcPath));
+      log(`[hotkeys] ${name}`);
       if (!dry) writeJson(destPath, next);
     } else if (name.endsWith(".json")) {
       const cur = fs.existsSync(destPath) ? readJson(destPath) : {};
@@ -137,6 +223,19 @@ export async function sync(opts) {
     if (!opts.dry) fs.cpSync(vaultObs, bak, { recursive: true });
 
     installPlugin(src.dir, vaultObs, opts.dry);
+
+    // install the community theme the profile asks for, so cssTheme actually applies
+    let themeName = null;
+    const appearancePath = path.join(settingsDir, "appearance.json");
+    if (fs.existsSync(appearancePath)) {
+      try {
+        themeName = readJson(appearancePath).cssTheme || null;
+      } catch {
+        // malformed appearance.json: applySettings will surface it; just skip the theme
+      }
+    }
+    await installTheme(vaultObs, themeName, opts.dry);
+
     applySettings(settingsDir, vaultObs, opts.dry);
 
     log("");
