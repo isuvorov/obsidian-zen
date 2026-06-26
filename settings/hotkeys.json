@@ -35,7 +35,7 @@
   "obsidian-zen:reload-active-file": [
     { "modifiers": ["Mod"], "key": "R" }
   ],
-  "app:open-vault": [
+  "obsidian-zen:open-vault": [
     { "modifiers": ["Mod", "Ctrl"], "key": "P" }
   ]
 }

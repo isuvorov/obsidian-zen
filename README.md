@@ -118,8 +118,7 @@ ob ~/projects/app/docs/*.md     # a whole folder at once (shell glob)
 
 ## Hotkeys & commands
 
-The plugin registers `Toggle heading 1…6` commands. The `settings/hotkeys.json`
-profile binds keys to them:
+The `settings/hotkeys.json` profile binds keys to plugin and core commands:
 
 | Hotkey            | Action                                                 |
 | ----------------- | ------------------------------------------------------ |
@@ -127,15 +126,14 @@ profile binds keys to them:
 | `Cmd+0`           | Remove heading (plain text)                            |
 | `Cmd+P`           | Quick switcher (open file)                             |
 | `Cmd+Shift+P`     | Command palette                                        |
-| `Cmd+§`           | Toggle the left sidebar                                |
-| `Cmd+Shift+§`     | Toggle the right sidebar                               |
+| `Cmd+Ctrl+P`      | Open another vault (in-window fuzzy palette)           |
+| `Cmd+§` / `Cmd+~` / 2-finger swipe | Toggle the left sidebar (swipe: → reveal, ← hide)     |
+| `Cmd+Shift+§` / `Cmd+Shift+~`      | Toggle the right sidebar                              |
 
 > Collapse **both** sidebars → **zen mode** kicks in: the view header, tab bar
 > and inline title hide, and the titlebar is painted to match the background.
 
-Heading toggle behaves like `Cmd+B` for bold: one press sets a heading of the
-given level, pressing again at the same level removes it. Works across multi-line
-selections (blank lines are left untouched).
+
 
 ### Enter in Zen Mode
 

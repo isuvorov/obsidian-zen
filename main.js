@@ -22,7 +22,7 @@
 //    На macOS жест приходит как wheel с доминирующим deltaX. Слушаем пассивно,
 //    preventDefault не зовём — обычный горизонтальный скролл не ломается.
 // Сборка/транспиляция не нужна: Obsidian грузит main.js как есть.
-const { Plugin, Notice, MarkdownView } = require('obsidian');
+const { Plugin, Notice, MarkdownView, FuzzySuggestModal, Platform } = require('obsidian');
 
 // Шаблон заголовка окна. Плейсхолдеры: {{filename}}, {{filepath}}, {{vault}}.
 const WINDOW_TITLE_TEMPLATE = '{{filename}} — {{vault}}';
@@ -76,6 +76,36 @@ function toggleHeading(editor, level) {
   }
 }
 
+// Папка глобального конфига Obsidian, где лежит obsidian.json со списком vaults.
+function obsidianConfigDir() {
+  const os = require('os');
+  const path = require('path');
+  const home = os.homedir();
+  if (process.platform === 'darwin') return path.join(home, 'Library', 'Application Support', 'obsidian');
+  if (process.platform === 'win32') return path.join(process.env.APPDATA || path.join(home, 'AppData', 'Roaming'), 'obsidian');
+  return path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'obsidian');
+}
+
+// Fuzzy-палитра выбора vault — та же UI-основа, что у quick switcher.
+// Открывается внутри окна (в отличие от стартового окна команды app:open-vault).
+class VaultSwitcherModal extends FuzzySuggestModal {
+  constructor(app, vaults, onPick) {
+    super(app);
+    this.vaults = vaults;
+    this.onPick = onPick;
+    this.setPlaceholder('Open another vault…');
+  }
+  getItems() {
+    return this.vaults;
+  }
+  getItemText(v) {
+    return v.name;
+  }
+  onChooseItem(v) {
+    this.onPick(v);
+  }
+}
+
 module.exports = class ZenMode extends Plugin {
   onload() {
     for (let level = 1; level <= 6; level++) {
@@ -96,6 +126,13 @@ module.exports = class ZenMode extends Plugin {
       id: 'reload-active-file',
       name: 'Reload current file from disk',
       callback: () => this.reloadActiveFile(),
+    });
+
+    // Открыть другой vault через fuzzy-палитру внутри окна (а не стартовое окно).
+    this.addCommand({
+      id: 'open-vault',
+      name: 'Open another vault',
+      callback: () => this.openVaultPalette(),
     });
 
     this.setupWindowTitle();
@@ -202,6 +239,55 @@ module.exports = class ZenMode extends Plugin {
     } catch (e) {
       new Notice('Reload file: error — ' + e.message);
       console.error('[obsidian-zen] reload', e);
+    }
+  }
+
+  // Абсолютный путь текущего vault (для отсева его из списка).
+  currentVaultPath() {
+    const a = this.app.vault.adapter;
+    return (a.getBasePath && a.getBasePath()) || a.basePath || '';
+  }
+
+  // Читает список vaults из глобального obsidian.json, кроме текущего.
+  listVaults() {
+    const fs = require('fs');
+    const path = require('path');
+    const file = path.join(obsidianConfigDir(), 'obsidian.json');
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const cur = this.currentVaultPath();
+    return Object.entries(data.vaults || {})
+      .map(([id, v]) => ({ id, path: v.path, name: path.basename(v.path) }))
+      .filter((v) => v.path && v.path !== cur)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  // Открывает палитру выбора vault; по выбору переключается на него.
+  openVaultPalette() {
+    if (!Platform.isDesktopApp) {
+      new Notice('Open another vault: desktop only');
+      return;
+    }
+    let vaults;
+    try {
+      vaults = this.listVaults();
+    } catch (e) {
+      new Notice('Open another vault: cannot read vault list — ' + e.message);
+      return;
+    }
+    if (!vaults.length) {
+      new Notice('No other vaults found');
+      return;
+    }
+    new VaultSwitcherModal(this.app, vaults, (v) => this.openVault(v)).open();
+  }
+
+  // Переключается на vault по абсолютному пути тем же IPC, что и сам Obsidian.
+  openVault(v) {
+    try {
+      const ok = window.electron.ipcRenderer.sendSync('vault-open', v.path, false);
+      if (ok !== true) new Notice('Failed to open vault: ' + (typeof ok === 'string' ? ok : v.name));
+    } catch (e) {
+      new Notice('Open vault error: ' + e.message);
     }
   }
 
