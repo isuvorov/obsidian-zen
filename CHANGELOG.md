@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/isuvorov/obsidian-zen/compare/0.2.0...0.2.1) (2026-06-26)
+
+
+### Bug Fixes
+
+* implement hotkey merging and community theme installation ([5764680](https://github.com/isuvorov/obsidian-zen/commit/57646803bbebd2f2d6ef62b0dbf6eacb223fe538))
+
 # [0.2.0](https://github.com/isuvorov/obsidian-zen/compare/0.1.6...0.2.0) (2026-06-26)
 
 
