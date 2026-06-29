@@ -10,3 +10,5 @@ npm-debug.log*
 
 # Obsidian sync backups (created in target vaults, never here)
 .obsidian.bak-*
+
+test-obsidian-vault/.obsidian
