@@ -1,6 +1,6 @@
 {
   "name": "obsidian-zen",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "CLI to roll out the Zen Mode Obsidian plugin and settings into any vault.",
   "type": "module",
   "author": "Igor Suvorov <hi@isuvorov.com>",

@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/isuvorov/obsidian-zen/compare/0.2.2...0.3.0) (2026-06-29)
+
+
+### Features
+
+* improve cli open ([d447979](https://github.com/isuvorov/obsidian-zen/commit/d4479790f858be342fe114dbc9f77a4a6f05df0d))
+
 ## [0.2.2](https://github.com/isuvorov/obsidian-zen/compare/0.2.1...0.2.2) (2026-06-26)
 
 
