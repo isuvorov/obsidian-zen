@@ -1,4 +1,7 @@
 // Open Markdown file(s) in Obsidian from the terminal or a file manager.
+// A directory argument that is itself a vault (has .obsidian) opens that vault directly,
+// so `obsidian-zen open .` inside a vault folder just opens it; a non-vault directory
+// with a README.md opens that README instead.
 // A pure-ESM port of the open-in-obsidian shell script:
 //   1) file already lives inside some vault   -> open it in place;
 //   2) file is under one of the --mirror dirs  -> mirror its structure into the vault via a symlink;
@@ -63,10 +66,8 @@ function readVaults() {
   return { all, active };
 }
 
-// Open a path in Obsidian via obsidian:// + the platform's "open".
-function openInApp(targetPath) {
-  const url = `obsidian://open?path=${encodeURIComponent(targetPath)}&paneType=tab`;
-  log(`[open] ${targetPath}`);
+// Hand a URL to the platform's opener (macOS "open", Windows "start", Linux xdg-open).
+function platformOpen(url) {
   const [cmd, args] =
     process.platform === "darwin"
       ? ["open", [url]]
@@ -76,6 +77,18 @@ function openInApp(targetPath) {
   execFile(cmd, args, (err) => {
     if (err) warn(`[warn] could not open URL: ${err.message}`);
   });
+}
+
+// Open a file path in Obsidian via the obsidian:// scheme.
+function openInApp(targetPath) {
+  log(`[open] ${targetPath}`);
+  platformOpen(`obsidian://open?path=${encodeURIComponent(targetPath)}&paneType=tab`);
+}
+
+// Open a whole vault by pointing obsidian:// at the vault's root folder.
+function openVault(vaultPath) {
+  log(`[open vault] ${vaultPath}`);
+  platformOpen(`obsidian://open?path=${encodeURIComponent(vaultPath)}`);
 }
 
 // Extract local attachment paths from Markdown: [..](path) and <img src="...">.
@@ -206,6 +219,32 @@ async function openOne(file, ctx) {
 export async function openInObsidian(files, opts = {}) {
   if (!files || files.length === 0) throw new Error("No files to open.");
 
+  // A directory argument that is itself a vault (has .obsidian) opens that vault;
+  // everything else is collected as a Markdown file to open below.
+  const fileArgs = [];
+  for (const f of files) {
+    let st;
+    try {
+      st = fs.statSync(f);
+    } catch {
+      st = null;
+    }
+    if (st && st.isDirectory()) {
+      const dir = fs.realpathSync(f);
+      if (fs.existsSync(path.join(dir, ".obsidian"))) {
+        openVault(dir);
+      } else if (fs.existsSync(path.join(dir, "README.md"))) {
+        // not a vault, but has a README — open that instead
+        fileArgs.push(path.join(dir, "README.md"));
+      } else {
+        warn(`[skip] no vault (.obsidian) or README.md in: ${f}`);
+      }
+    } else {
+      fileArgs.push(f);
+    }
+  }
+  if (fileArgs.length === 0) return;
+
   const { all, active } = readVaults();
   const defaultVault = opts.vault ? path.resolve(opts.vault) : active;
   if (!defaultVault) {
@@ -218,7 +257,7 @@ export async function openInObsidian(files, opts = {}) {
     mirror: opts.mirror || [],
   };
 
-  for (const f of files) {
+  for (const f of fileArgs) {
     try {
       await openOne(f, ctx);
     } catch (err) {

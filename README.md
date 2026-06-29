@@ -82,13 +82,17 @@ npx obsidian-zen sync ~/vaults/work --from you/fork   # from another owner/repo
 | `--from`    | `-f`  | `https://github.com/isuvorov/obsidian-zen` | profile source: folder \| git URL \| `owner/repo` |
 | `--dry-run` | `-n`  | `false`                                    | show the plan without changes                     |
 
-### `open` — open any Markdown file in Obsidian
+### `open` — open a file or a whole vault in Obsidian
 
 Open a `.md` file that lives **anywhere** on disk, even outside a vault. Local
 attachments the note links to are symlinked alongside it, so images render.
+Pass a **vault folder** (one containing `.obsidian`) and that vault is opened
+directly — so `open .` inside a vault just opens it. A non-vault folder with a
+`README.md` opens that README instead.
 
 ```bash
 npx obsidian-zen open README.md                       # open in the active vault
+npx obsidian-zen open .                                # open the vault in the current folder
 npx obsidian-zen open ~/projects/app/docs/*.md         # several files at once
 npx obsidian-zen open NOTES.md --vault ~/vaults/work   # pick the destination vault
 npx obsidian-zen open paper.md --mirror ~/projects/app # mirror the tree under the vault
@@ -96,7 +100,7 @@ npx obsidian-zen open paper.md --mirror ~/projects/app # mirror the tree under t
 
 | Argument    | Alias | Default      | Purpose                                                                 |
 |-------------|-------|--------------|-------------------------------------------------------------------------|
-| `<files..>` | —     | (required)   | one or more `.md` files to open                                         |
+| `<files..>` | —     | (required)   | one or more `.md` files, or a vault folder to open the vault itself     |
 | `--vault`   | `-V`  | active vault | destination vault for the symlinks                                      |
 | `--mirror`  | `-m`  | —            | directory whose inner structure is mirrored into the vault (repeatable) |
 
@@ -110,9 +114,11 @@ alias ob='obsidian-zen open'    # add to ~/.zshrc to keep it
 
 ob note.md                      # open a single file
 ob ~/projects/app/docs/*.md     # a whole folder at once (shell glob)
+ob .                            # open the current vault
 ```
 
-> Only `.md` files are opened — pass a glob like `docs/*.md`, not a bare directory.
+> A bare directory opens as a vault if it has `.obsidian`, else its `README.md`
+> if present; otherwise pass `.md` files or a glob like `docs/*.md`.
 
 ---
 

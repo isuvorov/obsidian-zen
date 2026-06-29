@@ -47,11 +47,11 @@ yargs(hideBin(process.argv))
   )
   .command(
     "open <files..>",
-    "Open Markdown file(s) in Obsidian",
+    "Open Markdown file(s) — or a vault folder — in Obsidian",
     (y) =>
       y
         .positional("files", {
-          describe: "paths to .md files",
+          describe: "paths to .md files, or a vault folder to open the vault itself",
           type: "string",
           array: true,
         })
@@ -67,6 +67,7 @@ yargs(hideBin(process.argv))
           describe: "directory whose inner structure is mirrored into the vault (repeatable)",
         })
         .example("$0 open README.md", "open a file in the active vault")
+        .example("$0 open .", "open the vault in the current directory")
         .example("$0 open ~/projects/app/docs/*.md", "open several files")
         .example("$0 open NOTES.md --vault ~/vaults/work", "pick the destination vault"),
     async (args) => {
