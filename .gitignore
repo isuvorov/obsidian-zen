@@ -12,3 +12,5 @@ npm-debug.log*
 .obsidian.bak-*
 
 test-obsidian-vault/.obsidian
+
+scripts/sync-all.sh

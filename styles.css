@@ -298,3 +298,34 @@ body:not(:has(.workspace-split.mod-left-split)) .titlebar-inner {
 .nav-folder:has(> .nav-folder-title[data-path*="/__temp"]) {
   display: none !important;
 }
+
+/* ---------- WIDE LAYOUT (тоггл body.zen-wide) ----------
+   Плагин добавляет команду и ribbon-кнопку «Toggle wide layout», которые
+   вешают/снимают класс zen-wide на <body>. В этом режиме снимаем ограничение
+   ширины колонки (Obsidian «Readable line length», --file-line-width): текст
+   и широкие таблицы занимают всю доступную ширину окна. Действует и в редакторе
+   (Live Preview / source), и в reading view. */
+/* Переопределяем саму переменную Obsidian: её max-width использует и reading view,
+   и редактор, так что в большинстве тем этого достаточно. */
+body.zen-wide {
+  --file-line-width: 100%;
+}
+/* Явно снимаем ограничение ширины на всех элементах, где Obsidian его вешает.
+   Важно: в CM6-редакторе max-width и авто-центрирование висят НЕ на самом .cm-sizer,
+   а на его детях (.cm-sizer > *, т.е. .cm-contentContainer) — поэтому раньше колонка
+   оставалась узкой и просто прижималась влево. */
+body.zen-wide .markdown-preview-view.is-readable-line-width .markdown-preview-sizer,
+body.zen-wide .markdown-source-view.is-readable-line-width .cm-sizer > *,
+body.zen-wide .markdown-source-view.is-readable-line-width .cm-content,
+body.zen-wide .markdown-source-view.is-readable-line-width .cm-line {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+/* Небольшой боковой отступ, чтобы контент не прилипал к самым краям окна. */
+body.zen-wide .markdown-source-view .cm-sizer,
+body.zen-wide .markdown-preview-view .markdown-preview-sizer {
+  padding-left: 24px;
+  padding-right: 24px;
+}

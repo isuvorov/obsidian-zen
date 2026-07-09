@@ -107,7 +107,7 @@ class VaultSwitcherModal extends FuzzySuggestModal {
 }
 
 module.exports = class ZenMode extends Plugin {
-  onload() {
+  async onload() {
     for (let level = 1; level <= 6; level++) {
       this.addCommand({
         id: `toggle-heading-${level}`,
@@ -135,8 +135,39 @@ module.exports = class ZenMode extends Plugin {
       callback: () => this.openVaultPalette(),
     });
 
+    // Широкая вёрстка: тоггл body-класса zen-wide. В этом режиме CSS снимает
+    // ограничение ширины колонки (Obsidian «Readable line length»), чтобы
+    // широкие таблицы и текст занимали всю доступную ширину окна.
+    this.addCommand({
+      id: 'toggle-wide-mode',
+      name: 'Toggle wide layout',
+      callback: () => this.toggleWideMode(),
+    });
+
+    // Та же команда на кнопке в левой ленте.
+    this.addRibbonIcon('unfold-horizontal', 'Toggle wide layout', () => {
+      this.toggleWideMode();
+    });
+
+    // Восстановить сохранённое состояние широкой вёрстки.
+    const data = await this.loadData();
+    this.applyWideMode(!!(data && data.wide));
+
     this.setupWindowTitle();
     this.setupSidebarSwipe();
+  }
+
+  // Вешает/снимает класс zen-wide на <body> — остальное делает CSS.
+  applyWideMode(on) {
+    this.wide = on;
+    document.body.classList.toggle('zen-wide', on);
+  }
+
+  // Переключает широкую вёрстку и запоминает выбор между перезапусками.
+  async toggleWideMode() {
+    this.applyWideMode(!this.wide);
+    await this.saveData({ wide: this.wide });
+    new Notice(this.wide ? 'Wide layout: on' : 'Wide layout: off');
   }
 
   // Горизонтальный свайп двумя пальцами по трекпаду тогглит левый сайдбар.
@@ -294,5 +325,7 @@ module.exports = class ZenMode extends Plugin {
   onunload() {
     // Вернуть стандартный заголовок Obsidian.
     if (this.baseTitle != null) document.title = this.baseTitle;
+    // Снять класс широкой вёрстки (CSS плагина всё равно снимается сам).
+    document.body.classList.remove('zen-wide');
   }
 };
