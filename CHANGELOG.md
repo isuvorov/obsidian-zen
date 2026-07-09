@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/isuvorov/obsidian-zen/compare/0.3.0...0.4.0) (2026-07-09)
+
+
+### Features
+
+* add wide-screen button ([e1bf05b](https://github.com/isuvorov/obsidian-zen/commit/e1bf05ba784ecf46ad0918b1a7018c0b33224341))
+
 # [0.3.0](https://github.com/isuvorov/obsidian-zen/compare/0.2.2...0.3.0) (2026-06-29)
 
 

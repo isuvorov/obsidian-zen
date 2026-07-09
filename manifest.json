@@ -1,7 +1,7 @@
 {
   "id": "obsidian-zen",
   "name": "Zen Mode",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "minAppVersion": "1.5.0",
   "description": "Clean red-accent styling (red accents, red list bullets, refined heading weights) and a distraction-free zen mode, layered on top of your current theme as a plugin overlay.",
   "author": "Igor Suvorov",
