@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/isuvorov/obsidian-zen/compare/0.4.0...0.5.0) (2026-07-17)
+
+
+### Features
+
+* 4 dimentions of wider button ([32cb55b](https://github.com/isuvorov/obsidian-zen/commit/32cb55b570399c5a7eefd5c7990bf3f708f563c3))
+
 # [0.4.0](https://github.com/isuvorov/obsidian-zen/compare/0.3.0...0.4.0) (2026-07-09)
 
 
