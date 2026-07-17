@@ -27,6 +27,17 @@ const { Plugin, Notice, MarkdownView, FuzzySuggestModal, Platform } = require('o
 // Шаблон заголовка окна. Плейсхолдеры: {{filename}}, {{filepath}}, {{vault}}.
 const WINDOW_TITLE_TEMPLATE = '{{filename}} — {{vault}}';
 
+// --- Широкая вёрстка: «распорки» (пресеты ширины колонки) ---
+// Кнопка и команда toggle-wide-mode циклят по этому списку. width — значение
+// CSS-переменной --zen-wide-width (см. styles.css); null = обычная колонка
+// («Readable line length» Obsidian). Добавить распорку = добавить строку.
+const WIDE_PRESETS = [
+  { id: 'off',  width: null,     label: 'Wide layout: off' },
+  { id: 'm',    width: '900px',  label: 'Wide layout: 900 px' },
+  { id: 'l',    width: '1200px', label: 'Wide layout: 1200 px' },
+  { id: 'full', width: '100%',   label: 'Wide layout: full width' },
+];
+
 // --- Свайп для левого сайдбара ---
 const SWIPE_THRESHOLD = 60;     // суммарный горизонтальный путь (px) для срабатывания
 const SWIPE_RESET_MS = 300;     // пауза, после которой накопление пути сбрасывается
@@ -135,39 +146,61 @@ module.exports = class ZenMode extends Plugin {
       callback: () => this.openVaultPalette(),
     });
 
-    // Широкая вёрстка: тоггл body-класса zen-wide. В этом режиме CSS снимает
-    // ограничение ширины колонки (Obsidian «Readable line length»), чтобы
-    // широкие таблицы и текст занимали всю доступную ширину окна.
+    // Широкая вёрстка: цикл по «распоркам» — пресетам ширины колонки из
+    // WIDE_PRESETS (обычная → 900px → 1200px → во всю ширину → обычная).
+    // id команды остаётся toggle-wide-mode, чтобы не сломать хоткей.
     this.addCommand({
       id: 'toggle-wide-mode',
-      name: 'Toggle wide layout',
-      callback: () => this.toggleWideMode(),
+      name: 'Cycle wide layout (off → 900 → 1200 → full)',
+      callback: () => this.cycleWideMode(),
     });
 
     // Та же команда на кнопке в левой ленте.
-    this.addRibbonIcon('unfold-horizontal', 'Toggle wide layout', () => {
-      this.toggleWideMode();
+    this.addRibbonIcon('unfold-horizontal', 'Cycle wide layout', () => {
+      this.cycleWideMode();
     });
 
-    // Восстановить сохранённое состояние широкой вёрстки.
+    // Прямые команды на каждую распорку — для своих хоткеев и палитры.
+    for (const preset of WIDE_PRESETS) {
+      this.addCommand({
+        id: `set-wide-${preset.id}`,
+        name: preset.label.replace('Wide layout:', 'Wide layout —'),
+        callback: () => this.setWideMode(preset.id),
+      });
+    }
+
+    // Восстановить сохранённую распорку. Раньше хранился boolean (тоггл
+    // «обычная ↔ 100%») — true считаем за 'full'.
     const data = await this.loadData();
-    this.applyWideMode(!!(data && data.wide));
+    const saved = data && data.wide;
+    this.applyWideMode(saved === true ? 'full' : typeof saved === 'string' ? saved : 'off');
 
     this.setupWindowTitle();
     this.setupSidebarSwipe();
   }
 
-  // Вешает/снимает класс zen-wide на <body> — остальное делает CSS.
-  applyWideMode(on) {
-    this.wide = on;
-    document.body.classList.toggle('zen-wide', on);
+  // Применяет распорку: вешает/снимает класс zen-wide на <body> и передаёт
+  // ширину в CSS через переменную --zen-wide-width — остальное делает CSS.
+  applyWideMode(id) {
+    const preset = WIDE_PRESETS.find((p) => p.id === id) || WIDE_PRESETS[0];
+    this.wide = preset.id;
+    document.body.classList.toggle('zen-wide', !!preset.width);
+    if (preset.width) document.body.style.setProperty('--zen-wide-width', preset.width);
+    else document.body.style.removeProperty('--zen-wide-width');
+    return preset;
   }
 
-  // Переключает широкую вёрстку и запоминает выбор между перезапусками.
-  async toggleWideMode() {
-    this.applyWideMode(!this.wide);
+  // Включает конкретную распорку и запоминает выбор между перезапусками.
+  async setWideMode(id) {
+    const preset = this.applyWideMode(id);
     await this.saveData({ wide: this.wide });
-    new Notice(this.wide ? 'Wide layout: on' : 'Wide layout: off');
+    new Notice(preset.label);
+  }
+
+  // Следующая распорка по циклу (после последней — снова первая).
+  async cycleWideMode() {
+    const i = WIDE_PRESETS.findIndex((p) => p.id === this.wide);
+    await this.setWideMode(WIDE_PRESETS[(i + 1) % WIDE_PRESETS.length].id);
   }
 
   // Горизонтальный свайп двумя пальцами по трекпаду тогглит левый сайдбар.
@@ -325,7 +358,8 @@ module.exports = class ZenMode extends Plugin {
   onunload() {
     // Вернуть стандартный заголовок Obsidian.
     if (this.baseTitle != null) document.title = this.baseTitle;
-    // Снять класс широкой вёрстки (CSS плагина всё равно снимается сам).
+    // Снять широкую вёрстку (CSS плагина всё равно снимается сам).
     document.body.classList.remove('zen-wide');
+    document.body.style.removeProperty('--zen-wide-width');
   }
 };
