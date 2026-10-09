@@ -231,6 +231,26 @@ body:not(:has(.workspace-split.mod-left-split)) .titlebar-inner {
   display: none !important;
 }
 
+/* ---------- Номера строк в редакторе — убрать ----------
+   Родной тумблер — Settings → Editor → Show line numbers (showLineNumber в
+   settings/app.json, профиль ставит его в false). Но app.json приезжает только
+   при sync и его может перебить сам Obsidian, а CSS плагина применяется сразу и
+   везде — поэтому гасим гуттер и здесь. Прячем именно .cm-lineNumbers, а не
+   .cm-gutters целиком: в гуттере живут ещё стрелки сворачивания блоков. */
+.markdown-source-view.mod-cm6 .cm-gutters .cm-lineNumbers {
+  display: none !important;
+}
+
+/* ---------- Вертикальная полоска у активной строки — убрать ----------
+   Рисует её не Obsidian, а тема Cupertino: ::before на .cm-line.cm-active с
+   border-left, вынесенный за левый край текста (inset-inline-start: -16px).
+   У самой темы выключатель есть — класс active-line-off на body через плагин
+   Style Settings, — но полагаться на чужой плагин не хочется, поэтому гасим
+   псевдоэлемент напрямую. Селектор темы длинный, отсюда !important. */
+.markdown-source-view .cm-line.cm-active::before {
+  content: none !important;
+}
+
 /* ---------- Свойства (properties / frontmatter) в документе — скрыть ----------
    .metadata-container — блок свойств над текстом. Даже свёрнутый (.is-collapsed)
    он занимает высоту, т.к. его display задаётся через --metadata-display-editing.
