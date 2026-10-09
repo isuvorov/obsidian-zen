@@ -251,6 +251,61 @@ body:not(:has(.workspace-split.mod-left-split)) .titlebar-inner {
   content: none !important;
 }
 
+/* ---------- Ribbon и стрелки сайдбара — гасим, пока сайдбар свёрнут ----------
+   От свёрнутого сайдбара остаётся полоса ribbon с иконками и стрелка-раскрывашка.
+   На пустом экране zen mode это единственное яркое пятно, поэтому приглушаем их
+   до --zen-idle-icon-opacity и возвращаем полную видимость на hover (и на
+   клавиатурный фокус — иначе до иконок не добраться без мыши). Иконки не
+   исчезают совсем: место остаётся прежним, курсор находит их вслепую.
+   Силу приглушения и скорость проявления настраиваем этими переменными. */
+body {
+  --zen-idle-icon-opacity: 0.2;
+  --zen-idle-icon-fade: 200ms;
+}
+
+/* Лента целиком: иконки-экшены + шестерёнка + кнопка сайдбара внутри неё.
+   Obsidian ≥ 1.13 переименовал ленты: mod-left → mod-primary, mod-right →
+   mod-secondary (класс .workspace-ribbon.side-dock-ribbon.mod-primary). Cupertino
+   3.2.x целится ещё в .mod-left, поэтому её «прозрачная лента без рамки» отвалилась
+   и лента стала серой колонкой. Сторону не указываем вовсе, свёрнутость берём с ленты
+   (.is-collapsed), а не через :has() по соседнему сплиту. */
+.workspace-ribbon.is-collapsed {
+  /* Фон как у редактора и без разделителя — лента сливается с листом.
+     Именно фон, а не transparent: под лентой лежит серый .app-container
+     (--background-secondary). */
+  background-color: var(--background-primary) !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow: none !important;
+}
+.workspace-ribbon.is-collapsed::before {
+  content: none !important;   /* горизонтальная черта под шапкой */
+}
+/* Приглушаем содержимое ленты (кнопка сайдбара, экшены, шестерёнка), а не саму
+   ленту: opacity на ленте делает полупрозрачным и её фон — сквозь него снова
+   проступает серый .app-container. */
+.workspace-ribbon.is-collapsed > * {
+  opacity: var(--zen-idle-icon-opacity);
+  transition: opacity var(--zen-idle-icon-fade) ease;
+}
+.workspace-ribbon.is-collapsed:is(:hover, :focus-within) > * {
+  opacity: 1;
+}
+
+/* Стрелки-раскрывашки живут не только в ribbon, но и в строке вкладок
+   (в zen mode она скрыта, но при одном свёрнутом сайдбаре — видна). */
+.workspace:has(> .workspace-split.mod-left-split.is-sidedock-collapsed) .workspace-tab-header-container .sidebar-toggle-button.mod-left,
+.workspace:has(> .workspace-split.mod-right-split.is-sidedock-collapsed) .workspace-tab-header-container .sidebar-toggle-button.mod-right {
+  opacity: var(--zen-idle-icon-opacity);
+  transition: opacity var(--zen-idle-icon-fade) ease;
+}
+.workspace:has(> .workspace-split.mod-left-split.is-sidedock-collapsed) .workspace-tab-header-container .sidebar-toggle-button.mod-left:hover,
+.workspace:has(> .workspace-split.mod-left-split.is-sidedock-collapsed) .workspace-tab-header-container .sidebar-toggle-button.mod-left:focus-within,
+.workspace:has(> .workspace-split.mod-right-split.is-sidedock-collapsed) .workspace-tab-header-container .sidebar-toggle-button.mod-right:hover,
+.workspace:has(> .workspace-split.mod-right-split.is-sidedock-collapsed) .workspace-tab-header-container .sidebar-toggle-button.mod-right:focus-within {
+  opacity: 1;
+}
+
 /* ---------- Свойства (properties / frontmatter) в документе — скрыть ----------
    .metadata-container — блок свойств над текстом. Даже свёрнутый (.is-collapsed)
    он занимает высоту, т.к. его display задаётся через --metadata-display-editing.
