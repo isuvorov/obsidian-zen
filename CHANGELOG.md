@@ -1,3 +1,16 @@
+# [0.6.0](https://github.com/isuvorov/obsidian-zen/compare/0.5.0...0.6.0) (2026-10-09)
+
+
+### Bug Fixes
+
+* blend the collapsed ribbon into the page on obsidian 1.13 and fade its icons until hover ([651acdb](https://github.com/isuvorov/obsidian-zen/commit/651acdb41d2d22bf02c0fa56289e5d5cde40e3ad))
+* **sync:** keep vault backups in one .obsidian_bak folder instead of a sibling per run ([fdb9fb1](https://github.com/isuvorov/obsidian-zen/commit/fdb9fb1e3e80f50b52e1060eb603821f9d92d8e7))
+
+
+### Features
+
+* hide line numbers and the active-line bar in the editor ([a34988b](https://github.com/isuvorov/obsidian-zen/commit/a34988b997f82b49898f4a9bae05658944e4b6e7))
+
 # [0.5.0](https://github.com/isuvorov/obsidian-zen/compare/0.4.0...0.5.0) (2026-07-17)
 
 
