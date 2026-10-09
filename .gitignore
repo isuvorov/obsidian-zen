@@ -9,6 +9,7 @@ node_modules/
 npm-debug.log*
 
 # Obsidian sync backups (created in target vaults, never here)
+.obsidian_bak/
 .obsidian.bak-*
 
 test-obsidian-vault/.obsidian

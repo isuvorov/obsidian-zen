@@ -217,10 +217,16 @@ export async function sync(opts) {
     const settingsDir = path.join(src.dir, "settings");
     if (!isDir(settingsDir)) throw new Error(`The source has no settings/: ${src.dir}`);
 
+    // All backups live under one folder: .obsidian_bak/<stamp>. Previously each
+    // run dropped a sibling .obsidian.bak-<stamp> next to .obsidian, so a vault
+    // synced a few times was littered with them at the top level.
     const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-    const bak = path.join(opts.vault, `.obsidian.bak-${stamp}`);
+    const bak = path.join(opts.vault, ".obsidian_bak", stamp);
     log(`[backup] ${bak}`);
-    if (!opts.dry) fs.cpSync(vaultObs, bak, { recursive: true });
+    if (!opts.dry) {
+      fs.mkdirSync(path.dirname(bak), { recursive: true });
+      fs.cpSync(vaultObs, bak, { recursive: true });
+    }
 
     installPlugin(src.dir, vaultObs, opts.dry);
 
